@@ -20,6 +20,7 @@ static constexpr char KEYCODE_RIGHT = 0x43;
 static constexpr char KEYCODE_LEFT = 0x44;
 static constexpr char KEYCODE_UP = 0x41;
 static constexpr char KEYCODE_DOWN = 0x42;
+static constexpr char KEYCODE_A = 0x61;
 static constexpr char KEYCODE_B = 0x62;
 static constexpr char KEYCODE_C = 0x63;
 static constexpr char KEYCODE_D = 0x64;
@@ -28,8 +29,10 @@ static constexpr char KEYCODE_F = 0x66;
 static constexpr char KEYCODE_G = 0x67;
 static constexpr char KEYCODE_Q = 0x71;
 static constexpr char KEYCODE_R = 0x72;
+static constexpr char KEYCODE_S = 0x73;
 static constexpr char KEYCODE_T = 0x74;
 static constexpr char KEYCODE_V = 0x76;
+static constexpr char KEYCODE_W = 0x77;
 
 bool running = true;
 
@@ -205,7 +208,7 @@ public:
 
     puts("Reading from keyboard");
     puts("---------------------------");
-    puts("Use arrow keys to move the turtle.");
+    puts("Use arrow keys or W|S to move the turtle.");
     puts("Use G|B|V|C|D|E|R|T keys to rotate to absolute orientations. 'F' to cancel a rotation.");
     puts("'Q' to quit.");
 
@@ -241,8 +244,16 @@ public:
         RCLCPP_DEBUG(nh_->get_logger(), "UP");
         linear = 1.0;
         break;
+      case KEYCODE_W:
+        RCLCPP_DEBUG(nh_->get_logger(), "W");
+        linear = 1.0;
+        break;
       case KEYCODE_DOWN:
         RCLCPP_DEBUG(nh_->get_logger(), "DOWN");
+        linear = -1.0;
+        break;
+      case KEYCODE_S:
+        RCLCPP_DEBUG(nh_->get_logger(), "S");
         linear = -1.0;
         break;
       case KEYCODE_G:

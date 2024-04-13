@@ -26,7 +26,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "turtlesim/turtle_frame.h"
 
 #include <QPointF>
@@ -34,22 +33,27 @@
 #include <cstdlib>
 #include <ctime>
 
-#define DEFAULT_BG_R 0x45
-#define DEFAULT_BG_G 0x56
-#define DEFAULT_BG_B 0xff
+#define DEFAULT_BG_R 0x22
+#define DEFAULT_BG_G 0x22
+#define DEFAULT_BG_B 0x22
+
+#define DEFAULT_WIDTH 1920
+#define DEFAULT_HEIGHT 1080
 
 namespace turtlesim
 {
 
 TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, Qt::WindowFlags f)
 : QFrame(parent, f)
-, path_image_(500, 500, QImage::Format_ARGB32)
+, path_image_(DEFAULT_WIDTH, DEFAULT_HEIGHT, QImage::Format_ARGB32)
 , path_painter_(&path_image_)
 , frame_count_(0)
 , id_counter_(0)
 {
-  setFixedSize(500, 500);
-  setWindowTitle("TurtleSim");
+  setBaseSize(640, 360);
+  setMaximumSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  showMaximized();
+  setWindowTitle("KITcar TurtleRace");
 
   srand(time(NULL));
 
@@ -111,8 +115,8 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
 
   RCLCPP_INFO(nh_->get_logger(), "Starting turtlesim with node name %s", nh_->get_fully_qualified_name());
 
-  width_in_meters_ = (width() - 1) / meter_;
-  height_in_meters_ = (height() - 1) / meter_;
+  width_in_meters_ = (DEFAULT_WIDTH - 1) / meter_;
+  height_in_meters_ = (DEFAULT_HEIGHT - 1) / meter_;
   spawnTurtle("", width_in_meters_ / 2.0, height_in_meters_ / 2.0, 0);
 
   // spawn all available turtle types
@@ -135,7 +139,7 @@ TurtleFrame::~TurtleFrame()
 
 bool TurtleFrame::spawnCallback(const turtlesim::srv::Spawn::Request::SharedPtr req, turtlesim::srv::Spawn::Response::SharedPtr res)
 {
-  std::string name = spawnTurtle(req->name, req->x, req->y, req->theta);
+  std::string name = spawnTurtle(req->name, req->x, req->y, req->theta, req->index);
   if (name.empty())
   {
     RCLCPP_ERROR(nh_->get_logger(), "A turtle named [%s] already exists", req->name.c_str());
@@ -184,6 +188,10 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, 
 
 std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, float angle, size_t index)
 {
+  if (index >= size_t(turtle_images_.size())) {
+    index = rand() % turtle_images_.size(); // choose random if index too large
+  }
+
   std::string real_name = name;
   if (real_name.empty())
   {
@@ -202,7 +210,7 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, 
     }
   }
 
-  TurtlePtr t = std::make_shared<Turtle>(nh_, real_name, turtle_images_[static_cast<int>(index)], QPointF(x, height_in_meters_ - y), angle);
+  TurtlePtr t = std::make_shared<Turtle>(nh_, real_name, turtle_images_[static_cast<int>(index)], QPointF(x, y), angle);
   turtles_[real_name] = t;
   update();
 
@@ -244,6 +252,13 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   QRgb background_color = qRgb(r, g, b);
   painter.fillRect(0, 0, width(), height(), background_color);
 
+  // scale painter here
+  float s = std::min(width()/float(DEFAULT_WIDTH), height()/float(DEFAULT_HEIGHT));
+  painter.scale(s, s);
+
+  // TODO draw track boundary lines here
+  //painter.drawLine(50,50,200,50);
+
   painter.drawImage(QPoint(0, 0), path_image_);
 
   M_Turtle::iterator it = turtles_.begin();
@@ -252,6 +267,11 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   {
     it->second->paint(painter);
   }
+
+  int lap_count = 0;
+  painter.setPen(Qt::white);
+  painter.setFont(QFont("Arial", 30));
+  painter.drawText(rect(), Qt::AlignLeft, QString::fromStdString("Lap count: " + std::to_string(lap_count)));
 }
 
 void TurtleFrame::updateTurtles()

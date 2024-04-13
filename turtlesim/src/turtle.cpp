@@ -34,9 +34,9 @@
 #include <QColor>
 #include <QRgb>
 
-#define DEFAULT_PEN_R 0xb3
-#define DEFAULT_PEN_G 0xb8
-#define DEFAULT_PEN_B 0xff
+#define DEFAULT_PEN_R 0x2b
+#define DEFAULT_PEN_G 0xa8
+#define DEFAULT_PEN_B 0x4a
 
 namespace turtlesim
 {
@@ -253,12 +253,14 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
   pos_.ry() -= std::cos(orient_) * lin_vel_y_ * dt
              + std::sin(orient_) * lin_vel_x_ * dt;
 
-  // Clamp to screen size
+  // Clamp to screen size (clamps to a 16:9 area, which may lead to early cutoff)
   if (pos_.x() < 0 || pos_.x() > canvas_width ||
       pos_.y() < 0 || pos_.y() > canvas_height)
   {
     RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the wall! (Clamping from [x=%f, y=%f])", pos_.x(), pos_.y());
   }
+
+  // TODO insert code to keep turtle within track limits here
 
   pos_.setX(std::min(std::max(static_cast<double>(pos_.x()), 0.0), static_cast<double>(canvas_width)));
   pos_.setY(std::min(std::max(static_cast<double>(pos_.y()), 0.0), static_cast<double>(canvas_height)));
