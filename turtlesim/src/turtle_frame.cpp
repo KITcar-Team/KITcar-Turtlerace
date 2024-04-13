@@ -43,13 +43,15 @@ namespace turtlesim
 
 TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, Qt::WindowFlags f)
 : QFrame(parent, f)
-, path_image_(500, 500, QImage::Format_ARGB32)
+, path_image_(1920, 1080, QImage::Format_ARGB32)
 , path_painter_(&path_image_)
 , frame_count_(0)
 , id_counter_(0)
 {
-  setFixedSize(500, 500);
-  setWindowTitle("TurtleSim");
+  setBaseSize(500, 500);
+  setMaximumSize(1920, 1080);
+  showMaximized();
+  setWindowTitle("KITcar TurtleRace");
 
   srand(time(NULL));
 
@@ -267,7 +269,7 @@ void TurtleFrame::updateTurtles()
   M_Turtle::iterator end = turtles_.end();
   for (; it != end; ++it)
   {
-    modified |= it->second->update(0.001 * update_timer_->interval(), path_painter_, path_image_, width_in_meters_, height_in_meters_);
+    modified |= it->second->update(0.001 * update_timer_->interval(), path_painter_, path_image_, (width() - 1) / meter_, (height() - 1) / meter_);
   }
   if (modified)
   {
