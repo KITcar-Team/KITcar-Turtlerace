@@ -1,0 +1,85 @@
+*~
+.*.swp
+.*.swo
+.cproject
+.project
+.pydevproject
+cmake_install.cmake
+build/
+bin/
+lib/
+msg_gen/
+srv_gen/
+devel/
+doc/*
+!doc/doxygen_tag_template.yaml
+!doc/generate_documentation.sh
+!doc/index_template.html
+!doc/package_template.tag
+*.slo
+*.lo
+*.o
+*.so
+*.dylib
+*.lai
+*.la
+*.kate-swp
+*.a
+*.pyc
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+*.autosave
+*.orig
+*-build/
+.catkin_workspace
+.clang_complete
+compile_commands.json
+# pycharm
+.idea/
+# ctags
+tags
+msg-tags
+# ccls
+.ccls-cache
+
+
+# catkin
+*/.catkin_tools/
+*/logs/
+
+# Qt ROS workspace
+*.workspace
+*.workspace.user
+
+# Code::Blocks
+*.cbp
+
+# Sourctrail
+*.srctrlbm
+*.srctrldb
+*.srctrlprj
+
+# Visual Studio Code / VSCodium
+*.vscode
+ccppproperties.json
+cw.code-workspace
+
+build_for_nuc/*
+!README.md
+
+# KDevelop
+*.kdev4
+
+# Virtual envs
+*.venv
+
+*.cache/
+# ros 2
+install/
+log/
+build/
