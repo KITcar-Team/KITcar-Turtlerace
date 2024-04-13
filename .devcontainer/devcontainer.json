@@ -43,26 +43,8 @@
       "source": "/dev/dri",
       "target": "/dev/dri",
       "type": "bind"
-    },
-    {
-      "source": "${localWorkspaceFolder}/cache/humble/build",
-      "target": "/home/ws/build",
-      "type": "bind"
-    },
-    {
-      "source": "${localWorkspaceFolder}/cache/humble/install",
-      "target": "/home/ws/install",
-      "type": "bind"
-    },
-    {
-      "source": "${localWorkspaceFolder}/cache/humble/log",
-      "target": "/home/ws/log",
-      "type": "bind"
     }
   ],
-  "initializeCommand": {
-    "create-cache-mounts": "mkdir -p ${localWorkspaceFolder}/cache/humble/log ${localWorkspaceFolder}/cache/humble/build ${localWorkspaceFolder}/cache/humble/install"
-  },
   "postCreateCommand": {
     "chown-ws": "sudo chown -R kitcar /home/ws/",
     "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y"
