@@ -27,7 +27,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// TODO UI: lap count, choose turtle
 
 #include "turtlesim/turtle_frame.h"
 
@@ -142,7 +141,7 @@ TurtleFrame::~TurtleFrame()
 
 bool TurtleFrame::spawnCallback(const turtlesim::srv::Spawn::Request::SharedPtr req, turtlesim::srv::Spawn::Response::SharedPtr res)
 {
-  std::string name = spawnTurtle(req->name, req->x, req->y, req->theta);
+  std::string name = spawnTurtle(req->name, req->x, req->y, req->theta, req->index);
   if (name.empty())
   {
     RCLCPP_ERROR(nh_->get_logger(), "A turtle named [%s] already exists", req->name.c_str());
@@ -191,6 +190,10 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, 
 
 std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, float angle, size_t index)
 {
+  if (index >= size_t(turtle_images_.size())) {
+    index = rand() % turtle_images_.size(); // choose random if index too large
+  }
+
   std::string real_name = name;
   if (real_name.empty())
   {
@@ -209,7 +212,7 @@ std::string TurtleFrame::spawnTurtle(const std::string& name, float x, float y, 
     }
   }
 
-  TurtlePtr t = std::make_shared<Turtle>(nh_, real_name, turtle_images_[static_cast<int>(index)], QPointF(x, height_in_meters_ - y), angle);
+  TurtlePtr t = std::make_shared<Turtle>(nh_, real_name, turtle_images_[static_cast<int>(index)], QPointF(x, y), angle);
   turtles_[real_name] = t;
   update();
 
@@ -267,7 +270,10 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     it->second->paint(painter);
   }
 
-  // TODO draw lap count
+  int lap_count = 0;
+  painter.setPen(Qt::white);
+  painter.setFont(QFont("Arial", 30));
+  painter.drawText(rect(), Qt::AlignLeft, QString::fromStdString("Lap count: " + std::to_string(lap_count)));
 }
 
 void TurtleFrame::updateTurtles()
