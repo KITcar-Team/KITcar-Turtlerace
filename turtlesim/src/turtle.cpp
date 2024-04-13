@@ -253,7 +253,7 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
   pos_.ry() -= std::cos(orient_) * lin_vel_y_ * dt
              + std::sin(orient_) * lin_vel_x_ * dt;
 
-  // Clamp to screen size (clamps to a 16:9 area, whcih may lead to early cutoff)
+  // Clamp to screen size (clamps to a 16:9 area, which may lead to early cutoff)
   if (pos_.x() < 0 || pos_.x() > canvas_width ||
       pos_.y() < 0 || pos_.y() > canvas_height)
   {
