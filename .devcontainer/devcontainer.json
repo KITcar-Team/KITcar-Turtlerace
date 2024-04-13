@@ -1,0 +1,70 @@
+{
+  "name": "ROS 2 Development Container",
+  "privileged": true,
+  "remoteUser": "kitcar",
+  "image": "osrf/ros:humble-desktop-full",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:1": {
+      "version": "latest",
+      "username": "kitcar",
+      "userUid": "1000",
+      "userGid": "1000"
+    }
+  },
+  "workspaceFolder": "/home/ws",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/ws/src,type=bind",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "ms-python.python",
+        "eamodio.gitlens",
+        "ms-iot.vscode-ros"
+      ]
+    }
+  },
+  "containerEnv": {
+    "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST",
+    "ROS_DOMAIN_ID": "42",
+    "CAR_NAME": "dr_drift"
+  },
+  "runArgs": [
+    "--net=host",
+    "-e",
+    "DISPLAY=${env:DISPLAY}"
+  ],
+  "mounts": [
+    {
+      "source": "/tmp/.X11-unix",
+      "target": "/tmp/.X11-unix",
+      "type": "bind"
+    },
+    {
+      "source": "/dev/dri",
+      "target": "/dev/dri",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolder}/cache/humble/build",
+      "target": "/home/ws/build",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolder}/cache/humble/install",
+      "target": "/home/ws/install",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolder}/cache/humble/log",
+      "target": "/home/ws/log",
+      "type": "bind"
+    }
+  ],
+  "initializeCommand": {
+    "create-cache-mounts": "mkdir -p ${localWorkspaceFolder}/cache/humble/log ${localWorkspaceFolder}/cache/humble/build ${localWorkspaceFolder}/cache/humble/install"
+  },
+  "postCreateCommand": {
+    "chown-ws": "sudo chown -R kitcar /home/ws/",
+    "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y"
+  }
+}
