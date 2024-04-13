@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+// TODO UI: lap count, choose turtle
+
 #include "turtlesim/turtle_frame.h"
 
 #include <QPointF>
@@ -34,22 +36,25 @@
 #include <cstdlib>
 #include <ctime>
 
-#define DEFAULT_BG_R 0x45
-#define DEFAULT_BG_G 0x56
-#define DEFAULT_BG_B 0xff
+#define DEFAULT_BG_R 0x22
+#define DEFAULT_BG_G 0x22
+#define DEFAULT_BG_B 0x22
+
+#define DEFAULT_WIDTH 1920
+#define DEFAULT_HEIGHT 1080
 
 namespace turtlesim
 {
 
 TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, Qt::WindowFlags f)
 : QFrame(parent, f)
-, path_image_(1920, 1080, QImage::Format_ARGB32)
+, path_image_(DEFAULT_WIDTH, DEFAULT_HEIGHT, QImage::Format_ARGB32)
 , path_painter_(&path_image_)
 , frame_count_(0)
 , id_counter_(0)
 {
-  setBaseSize(500, 500);
-  setMaximumSize(1920, 1080);
+  setBaseSize(640, 360);
+  setMaximumSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
   showMaximized();
   setWindowTitle("KITcar TurtleRace");
 
@@ -113,8 +118,8 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
 
   RCLCPP_INFO(nh_->get_logger(), "Starting turtlesim with node name %s", nh_->get_fully_qualified_name());
 
-  width_in_meters_ = (width() - 1) / meter_;
-  height_in_meters_ = (height() - 1) / meter_;
+  width_in_meters_ = (DEFAULT_WIDTH - 1) / meter_;
+  height_in_meters_ = (DEFAULT_HEIGHT - 1) / meter_;
   spawnTurtle("", width_in_meters_ / 2.0, height_in_meters_ / 2.0, 0);
 
   // spawn all available turtle types
@@ -246,6 +251,13 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   QRgb background_color = qRgb(r, g, b);
   painter.fillRect(0, 0, width(), height(), background_color);
 
+  // scale painter here
+  float s = std::min(width()/float(DEFAULT_WIDTH), height()/float(DEFAULT_HEIGHT));
+  painter.scale(s, s);
+
+  // TODO draw track boundary lines here
+  //painter.drawLine(50,50,200,50);
+
   painter.drawImage(QPoint(0, 0), path_image_);
 
   M_Turtle::iterator it = turtles_.begin();
@@ -254,6 +266,8 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   {
     it->second->paint(painter);
   }
+
+  // TODO draw lap count
 }
 
 void TurtleFrame::updateTurtles()
@@ -269,7 +283,7 @@ void TurtleFrame::updateTurtles()
   M_Turtle::iterator end = turtles_.end();
   for (; it != end; ++it)
   {
-    modified |= it->second->update(0.001 * update_timer_->interval(), path_painter_, path_image_, (width() - 1) / meter_, (height() - 1) / meter_);
+    modified |= it->second->update(0.001 * update_timer_->interval(), path_painter_, path_image_, width_in_meters_, height_in_meters_);
   }
   if (modified)
   {
