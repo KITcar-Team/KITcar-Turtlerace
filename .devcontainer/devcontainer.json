@@ -47,6 +47,7 @@
   ],
   "postCreateCommand": {
     "chown-ws": "sudo chown -R kitcar /home/ws/",
-    "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y"
+    "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y",
+    "source_from_bashrc": "echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc"
   }
 }
