@@ -1,0 +1,2 @@
+geometry_msgs/Polygon outer_polygon
+geometry_msgs/Polygon[] inner_polygons
