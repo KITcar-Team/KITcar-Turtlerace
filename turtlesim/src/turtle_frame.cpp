@@ -112,6 +112,12 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
   rclcpp::QoS qos(rclcpp::KeepLast(100), rmw_qos_profile_sensor_data);
   parameter_event_sub_ = nh_->create_subscription<rcl_interfaces::msg::ParameterEvent>(
     "/parameter_events", qos, std::bind(&TurtleFrame::parameterEventCallback, this, std::placeholders::_1));
+  lane_boundary_left_sub_ = nh_->create_subscription<nav_msgs::msg::Path>(
+    "lane_boundary_left", 5, std::bind(&TurtleFrame::laneBoundaryLeftCallback, this, std::placeholders::_1));
+  lane_boundary_middle_sub_ = nh_->create_subscription<nav_msgs::msg::Path>(
+    "lane_boundary_middle", 5, std::bind(&TurtleFrame::laneBoundaryMiddleCallback, this, std::placeholders::_1));
+  lane_boundary_right_sub_ = nh_->create_subscription<nav_msgs::msg::Path>(
+    "lane_boundary_right", 5, std::bind(&TurtleFrame::laneBoundaryRightCallback, this, std::placeholders::_1));
 
   RCLCPP_INFO(nh_->get_logger(), "Starting turtlesim with node name %s", nh_->get_fully_qualified_name());
 
@@ -130,6 +136,10 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
       spawnTurtle(name.toStdString(), 1.0f + 1.5f * (index % 7), 1.0f + 1.5f * (index / 7), static_cast<float>(PI) / 2.0f, index);
     }
   }
+
+  lane_boundary_left_ = nav_msgs::msg::Path();
+  lane_boundary_middle_ = nav_msgs::msg::Path();
+  lane_boundary_right_ = nav_msgs::msg::Path();
 }
 
 TurtleFrame::~TurtleFrame()
@@ -174,6 +184,24 @@ void TurtleFrame::parameterEventCallback(const rcl_interfaces::msg::ParameterEve
     // since parameter events for this event aren't expected frequently just always call update()
     update();
   }
+}
+
+void TurtleFrame::laneBoundaryLeftCallback(const nav_msgs::msg::Path::ConstSharedPtr path)
+{
+  lane_boundary_left_ = *path;
+  update();
+}
+
+void TurtleFrame::laneBoundaryMiddleCallback(const nav_msgs::msg::Path::ConstSharedPtr path)
+{
+  lane_boundary_middle_ = *path;
+  update();
+}
+
+void TurtleFrame::laneBoundaryRightCallback(const nav_msgs::msg::Path::ConstSharedPtr path)
+{
+  lane_boundary_right_ = *path;
+  update();
 }
 
 bool TurtleFrame::hasTurtle(const std::string& name)
@@ -256,8 +284,34 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   float s = std::min(width()/float(DEFAULT_WIDTH), height()/float(DEFAULT_HEIGHT));
   painter.scale(s, s);
 
-  // TODO draw track boundary lines here
-  //painter.drawLine(50,50,200,50);
+  painter.setPen(QPen(Qt::white, 3));
+  if (lane_boundary_left_.poses.size() > 1)
+  {
+    for (size_t i = 0; i < lane_boundary_left_.poses.size() - 1; ++i)
+    {
+      geometry_msgs::msg::Point p1 = lane_boundary_left_.poses[i].pose.position;
+      geometry_msgs::msg::Point p2 = lane_boundary_left_.poses[i + 1].pose.position;
+      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+    }
+  }
+  if (lane_boundary_middle_.poses.size() > 1)
+  {
+    for (size_t i = 0; i < lane_boundary_middle_.poses.size() - 1; ++i)
+    {
+      geometry_msgs::msg::Point p1 = lane_boundary_middle_.poses[i].pose.position;
+      geometry_msgs::msg::Point p2 = lane_boundary_middle_.poses[i + 1].pose.position;
+      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+    }
+  }
+  if (lane_boundary_right_.poses.size() > 1)
+  {
+    for (size_t i = 0; i < lane_boundary_right_.poses.size() - 1; ++i)
+    {
+      geometry_msgs::msg::Point p1 = lane_boundary_right_.poses[i].pose.position;
+      geometry_msgs::msg::Point p2 = lane_boundary_right_.poses[i + 1].pose.position;
+      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+    }
+  }
 
   painter.drawImage(QPoint(0, 0), path_image_);
 
