@@ -43,6 +43,7 @@
 # include <std_srvs/srv/empty.hpp>
 # include <turtlesim/srv/spawn.hpp>
 # include <turtlesim/srv/kill.hpp>
+# include "nav_msgs/msg/path.hpp"
 # include <map>
 
 # include "turtle.h"
@@ -78,6 +79,9 @@ private:
   bool killCallback(const turtlesim::srv::Kill::Request::SharedPtr, turtlesim::srv::Kill::Response::SharedPtr);
 
   void parameterEventCallback(const rcl_interfaces::msg::ParameterEvent::ConstSharedPtr);
+  void laneBoundaryLeftCallback(const nav_msgs::msg::Path::ConstSharedPtr);
+  void laneBoundaryMiddleCallback(const nav_msgs::msg::Path::ConstSharedPtr);
+  void laneBoundaryRightCallback(const nav_msgs::msg::Path::ConstSharedPtr);
 
   rclcpp::Node::SharedPtr nh_;
 
@@ -94,6 +98,9 @@ private:
   rclcpp::Service<turtlesim::srv::Spawn>::SharedPtr spawn_srv_;
   rclcpp::Service<turtlesim::srv::Kill>::SharedPtr kill_srv_;
   rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_event_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr lane_boundary_left_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr lane_boundary_middle_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr lane_boundary_right_sub_;
 
   typedef std::map<std::string, TurtlePtr> M_Turtle;
   M_Turtle turtles_;
@@ -104,6 +111,10 @@ private:
   float meter_;
   float width_in_meters_;
   float height_in_meters_;
+
+  nav_msgs::msg::Path lane_boundary_left_;
+  nav_msgs::msg::Path lane_boundary_middle_;
+  nav_msgs::msg::Path lane_boundary_right_;
 };
 
 }
