@@ -84,6 +84,10 @@ Turtle::Turtle(rclcpp::Node::SharedPtr& nh, const std::string& real_name, const 
   last_command_time_ = nh_->now();
 
   meter_ = turtle_image_.height();
+
+  lane_boundary_left_ = nav_msgs::msg::Path();
+  lane_boundary_right_ = nav_msgs::msg::Path();
+
   rotateImage();
 }
 
@@ -260,10 +264,50 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
     RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the wall! (Clamping from [x=%f, y=%f])", pos_.x(), pos_.y());
   }
 
-  // TODO insert code to keep turtle within track limits here
-
   pos_.setX(std::min(std::max(static_cast<double>(pos_.x()), 0.0), static_cast<double>(canvas_width)));
   pos_.setY(std::min(std::max(static_cast<double>(pos_.y()), 0.0), static_cast<double>(canvas_height)));
+
+  auto ccw = [](QPointF a, QPointF b, QPointF c) -> bool // are the points a, b, c in counter-clockwise order?
+    { 
+      return (c.y() - a.y()) * (b.x() - a.x()) > (b.y() - a.y()) * (c.x() - a.x()); 
+    };
+  auto intersect = [ccw](QPointF a, QPointF b, QPointF c, QPointF d) -> bool // does ab separate c & d and cd separate a & b?
+    {
+      return ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d);
+    };
+  auto world_to_turtle_space = [this](const geometry_msgs::msg::Point& p) -> QPointF
+    {
+      return QPointF(p.x / meter_, p.y / meter_);
+    };
+
+  if (lane_boundary_left_.poses.size() > 1)
+  {
+    for (size_t i = 0; i < lane_boundary_left_.poses.size() - 1; ++i)
+    {
+      QPointF p1 = world_to_turtle_space(lane_boundary_left_.poses[i].pose.position);
+      QPointF p2 = world_to_turtle_space(lane_boundary_left_.poses[i + 1].pose.position);
+      if (intersect(old_pos, pos_, p1, p2))
+      {
+        RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the left lane boundary!");
+        pos_ = old_pos;
+        break;
+      }
+    }
+  }
+  if (lane_boundary_right_.poses.size() > 1)
+  {
+    for (size_t i = 0; i < lane_boundary_right_.poses.size() - 1; ++i)
+    {
+      QPointF p1 = world_to_turtle_space(lane_boundary_right_.poses[i].pose.position);
+      QPointF p2 = world_to_turtle_space(lane_boundary_right_.poses[i + 1].pose.position);
+      if (intersect(old_pos, pos_, p1, p2))
+      {
+        RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the right lane boundary!");
+        pos_ = old_pos;
+        break;
+      }
+    }
+  }
 
   // Publish pose of the turtle
   auto p = std::make_unique<turtlesim::msg::Pose>();

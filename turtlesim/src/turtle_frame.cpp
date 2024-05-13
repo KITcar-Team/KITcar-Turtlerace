@@ -191,6 +191,10 @@ void TurtleFrame::laneBoundaryLeftCallback(const nav_msgs::msg::Path::ConstShare
 {
   lane_boundary_left_ = *path;
   update();
+  for (auto &mturtle : turtles_)
+  {
+    mturtle.second->lane_boundary_left_ = lane_boundary_left_;
+  }
 }
 
 void TurtleFrame::laneBoundaryMiddleCallback(const nav_msgs::msg::Path::ConstSharedPtr path)
@@ -203,6 +207,10 @@ void TurtleFrame::laneBoundaryRightCallback(const nav_msgs::msg::Path::ConstShar
 {
   lane_boundary_right_ = *path;
   update();
+  for (auto &mturtle : turtles_)
+  {
+    mturtle.second->lane_boundary_right_ = lane_boundary_right_;
+  }
 }
 
 bool TurtleFrame::hasTurtle(const std::string& name)

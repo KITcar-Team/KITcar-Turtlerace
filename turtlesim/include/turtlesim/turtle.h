@@ -36,6 +36,7 @@
 # include <rclcpp_action/rclcpp_action.hpp>
 
 # include <geometry_msgs/msg/twist.hpp>
+# include <nav_msgs/msg/path.hpp>
 # include <turtlesim/action/rotate_absolute.hpp>
 # include <turtlesim/msg/color.hpp>
 # include <turtlesim/msg/pose.hpp>
@@ -64,6 +65,9 @@ public:
 
   bool update(double dt, QPainter& path_painter, const QImage& path_image, qreal canvas_width, qreal canvas_height);
   void paint(QPainter &painter);
+
+  nav_msgs::msg::Path lane_boundary_left_;
+  nav_msgs::msg::Path lane_boundary_right_;
 private:
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
   bool setPenCallback(const turtlesim::srv::SetPen::Request::SharedPtr, turtlesim::srv::SetPen::Response::SharedPtr);
