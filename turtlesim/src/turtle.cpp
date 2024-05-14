@@ -279,6 +279,11 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
     {
       return QPointF(p.x / meter_, p.y / meter_);
     };
+  auto projection = [](QPointF ab, QPointF cd) -> QPointF // project ab onto cd
+    {
+      QPointF proj = QPointF::dotProduct(ab, cd) / QPointF::dotProduct(cd, cd) * cd;
+      return proj;
+    };
 
   if (lane_boundary_left_.poses.size() > 1)
   {
@@ -289,8 +294,7 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
       if (intersect(old_pos, pos_, p1, p2))
       {
         RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the left lane boundary!");
-        pos_ = old_pos;
-        break;
+        pos_ = old_pos + projection(pos_ - old_pos, p2 - p1);
       }
     }
   }
@@ -303,8 +307,7 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
       if (intersect(old_pos, pos_, p1, p2))
       {
         RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the right lane boundary!");
-        pos_ = old_pos;
-        break;
+        pos_ = old_pos + projection(pos_ - old_pos, p2 - p1);
       }
     }
   }
