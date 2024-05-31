@@ -293,6 +293,12 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   float s = std::min(width()/float(DEFAULT_WIDTH), height()/float(DEFAULT_HEIGHT));
   painter.scale(s, s);
 
+  // we need to convert from top-left origin to bottom-left origin and meters to pixels
+  auto world_to_pixel_space = [this](const geometry_msgs::msg::Point& p) -> QPointF
+    {
+      return QPointF(p.x * meter_, (height_in_meters_ - p.y) * meter_);
+    };
+
   painter.setPen(QPen(Qt::white, 3));
   if (lane_boundary_left_.poses.size() > 1)
   {
@@ -300,7 +306,7 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     {
       geometry_msgs::msg::Point p1 = lane_boundary_left_.poses[i].pose.position;
       geometry_msgs::msg::Point p2 = lane_boundary_left_.poses[i + 1].pose.position;
-      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+      painter.drawLine(world_to_pixel_space(p1), world_to_pixel_space(p2));
     }
   }
   if (lane_boundary_middle_.poses.size() > 1)
@@ -309,7 +315,7 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     {
       geometry_msgs::msg::Point p1 = lane_boundary_middle_.poses[i].pose.position;
       geometry_msgs::msg::Point p2 = lane_boundary_middle_.poses[i + 1].pose.position;
-      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+      painter.drawLine(world_to_pixel_space(p1), world_to_pixel_space(p2));
     }
   }
   if (lane_boundary_right_.poses.size() > 1)
@@ -318,7 +324,7 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     {
       geometry_msgs::msg::Point p1 = lane_boundary_right_.poses[i].pose.position;
       geometry_msgs::msg::Point p2 = lane_boundary_right_.poses[i + 1].pose.position;
-      painter.drawLine(p1.x, p1.y, p2.x, p2.y);
+      painter.drawLine(world_to_pixel_space(p1), world_to_pixel_space(p2));
     }
   }
 
