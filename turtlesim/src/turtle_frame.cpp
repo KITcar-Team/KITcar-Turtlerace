@@ -124,7 +124,7 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
 
   width_in_meters_ = (DEFAULT_WIDTH - 1) / meter_;
   height_in_meters_ = (DEFAULT_HEIGHT - 1) / meter_;
-  spawnTurtle("", width_in_meters_ / 2.0, height_in_meters_ / 2.0, 0);
+  spawnTurtle("", width_in_meters_ / 2.0, height_in_meters_ - 2.0, 0);
 
   // spawn all available turtle types
   if(false)
