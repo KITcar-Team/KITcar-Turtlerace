@@ -34,8 +34,6 @@
 #include <QColor>
 #include <QRgb>
 
-#include "tf2/LinearMath/Quaternion.h"
-
 #define DEFAULT_PEN_R 0x2b
 #define DEFAULT_PEN_G 0xa8
 #define DEFAULT_PEN_B 0x4a
@@ -58,8 +56,6 @@ Turtle::Turtle(rclcpp::Node::SharedPtr& nh, const std::string& real_name, const 
 , ang_vel_(0.0)
 , pen_on_(true)
 , pen_(QColor(DEFAULT_PEN_R, DEFAULT_PEN_G, DEFAULT_PEN_B))
-, tf_broadcaster_(std::make_unique<tf2_ros::TransformBroadcaster>(nh))
-, name_(real_name)
 {
   pen_.setWidth(3);
 
@@ -88,6 +84,10 @@ Turtle::Turtle(rclcpp::Node::SharedPtr& nh, const std::string& real_name, const 
   last_command_time_ = nh_->now();
 
   meter_ = turtle_image_.height();
+
+  lane_boundary_left_ = nav_msgs::msg::Path();
+  lane_boundary_right_ = nav_msgs::msg::Path();
+
   rotateImage();
 }
 
@@ -264,8 +264,6 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
     RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the wall! (Clamping from [x=%f, y=%f])", pos_.x(), pos_.y());
   }
 
-  // TODO insert code to keep turtle within track limits here
-
   pos_.setX(std::min(std::max(static_cast<double>(pos_.x()), 0.0), static_cast<double>(canvas_width)));
   pos_.setY(std::min(std::max(static_cast<double>(pos_.y()), 0.0), static_cast<double>(canvas_height)));
 
@@ -336,30 +334,6 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
   p->linear_velocity = std::sqrt(lin_vel_x_ * lin_vel_x_ + lin_vel_y_ * lin_vel_y_);
   p->angular_velocity = ang_vel_;
   pose_pub_->publish(std::move(p));
-
-  geometry_msgs::msg::TransformStamped t;
-  t.header.stamp = rclcpp::Time();
-  t.header.frame_id = "world";
-  t.child_frame_id = this->name_.c_str();
-
-  // Turtle only exists in 2D, thus we get x and y translation
-  // coordinates from the message and set the z coordinate to 0
-  t.transform.translation.x = pos_.x();
-  t.transform.translation.y = canvas_height - pos_.y();
-  t.transform.translation.z = 0;
-
-  // For the same reason, turtle can only rotate around one axis
-  // and this why we set rotation in x and y to 0 and obtain
-  // rotation in z axis from the message
-  tf2::Quaternion q;
-  q.setRPY(0, 0, orient_);
-  t.transform.rotation.x = q.x();
-  t.transform.rotation.y = q.y();
-  t.transform.rotation.z = q.z();
-  t.transform.rotation.w = q.w();
-
-  // Send the transformation
-  tf_broadcaster_->sendTransform(t);
 
   // Figure out (and publish) the color underneath the turtle
   {
