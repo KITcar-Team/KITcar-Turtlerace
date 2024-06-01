@@ -247,7 +247,7 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
     ang_vel_ = 0.0;
   }
 
-  QPointF old_pos = pos_;
+  QPointF old_pos = pos_; // pos is in meters with origin in top-left corner
 
   orient_ = orient_ + ang_vel_ * dt;
   // Keep orient_ between -pi and +pi
@@ -275,9 +275,9 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
     {
       return ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d);
     };
-  auto world_to_turtle_space = [this](const geometry_msgs::msg::Point& p) -> QPointF
+  auto world_to_pos_space = [canvas_height](const geometry_msgs::msg::Point& p) -> QPointF
     {
-      return QPointF(p.x / meter_, p.y / meter_);
+      return QPointF(p.x, canvas_height - p.y);
     };
   auto projection = [](QPointF ab, QPointF cd) -> QPointF // project ab onto cd
     {
@@ -292,8 +292,10 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
       start_over = false;
       for (size_t i = 0; i < lane_boundary_left_.poses.size() - 1; ++i)
       {
-        QPointF p1 = world_to_turtle_space(lane_boundary_left_.poses[i].pose.position);
-        QPointF p2 = world_to_turtle_space(lane_boundary_left_.poses[i + 1].pose.position);
+        // lane boundary is in world space, ie origin in bottom-left corner
+        QPointF p1 = world_to_pos_space(lane_boundary_left_.poses[i].pose.position);
+        QPointF p2 = world_to_pos_space(lane_boundary_left_.poses[i + 1].pose.position);
+        // intersection is done in pos space, ie origin in top-left corner
         if (intersect(old_pos, pos_, p1, p2))
         {
           RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the left lane boundary!");
@@ -311,8 +313,8 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
       start_over = false;
       for (size_t i = 0; i < lane_boundary_right_.poses.size() - 1; ++i)
       {
-        QPointF p1 = world_to_turtle_space(lane_boundary_right_.poses[i].pose.position);
-        QPointF p2 = world_to_turtle_space(lane_boundary_right_.poses[i + 1].pose.position);
+        QPointF p1 = world_to_pos_space(lane_boundary_right_.poses[i].pose.position);
+        QPointF p2 = world_to_pos_space(lane_boundary_right_.poses[i + 1].pose.position);
         if (intersect(old_pos, pos_, p1, p2))
         {
           RCLCPP_WARN(nh_->get_logger(), "Oh no! I hit the right lane boundary!");

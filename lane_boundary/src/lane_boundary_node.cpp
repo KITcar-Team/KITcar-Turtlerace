@@ -23,13 +23,13 @@ public:
 
     this->declare_parameter("track_scaling", true);
     is_track_scaling_ = this->get_parameter("track_scaling").as_bool();
-    this->declare_parameter("x_dimension", 1920);
+    this->declare_parameter("x_dimension", 41);
     int x_dimension = this->get_parameter("x_dimension").as_int();
-    this->declare_parameter("y_dimension", 1080);
+    this->declare_parameter("y_dimension", 23);
     int y_dimension = this->get_parameter("y_dimension").as_int();
-    this->declare_parameter("x_offset", 0.0);
+    this->declare_parameter("x_offset", 1.0);
     int x_offset = this->get_parameter("x_offset").as_double();
-    this->declare_parameter("y_offset", 0.0);
+    this->declare_parameter("y_offset", 1.0);
     int y_offset = this->get_parameter("y_offset").as_double();
 
     load_lane_boundary();
