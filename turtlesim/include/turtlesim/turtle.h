@@ -50,6 +50,8 @@
 #include <QPen>
 #include <QPointF>
 
+#include "tf2_ros/transform_broadcaster.h"
+
 #define PI 3.14159265
 #define TWO_PI 2.0 * PI
 
@@ -69,6 +71,7 @@ public:
   nav_msgs::msg::Path lane_boundary_left_;
   nav_msgs::msg::Path lane_boundary_right_;
 private:
+  
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
   bool setPenCallback(const turtlesim::srv::SetPen::Request::SharedPtr, turtlesim::srv::SetPen::Response::SharedPtr);
   bool teleportRelativeCallback(const turtlesim::srv::TeleportRelative::Request::SharedPtr, turtlesim::srv::TeleportRelative::Response::SharedPtr);
@@ -105,6 +108,9 @@ private:
   qreal rotate_absolute_start_orient_;
 
   rclcpp::Time last_command_time_;
+
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::string name_;
 
   float meter_;
 
