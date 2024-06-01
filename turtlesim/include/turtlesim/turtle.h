@@ -50,6 +50,8 @@
 #include <QPen>
 #include <QPointF>
 
+#include "tf2_ros/transform_broadcaster.h"
+
 #define PI 3.14159265
 #define TWO_PI 2.0 * PI
 
@@ -105,6 +107,9 @@ private:
   qreal rotate_absolute_start_orient_;
 
   rclcpp::Time last_command_time_;
+
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::string name_;
 
   float meter_;
 
