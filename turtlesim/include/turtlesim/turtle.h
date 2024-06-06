@@ -71,7 +71,6 @@ public:
   nav_msgs::msg::Path lane_boundary_left_;
   nav_msgs::msg::Path lane_boundary_right_;
 private:
-  
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
   bool setPenCallback(const turtlesim::srv::SetPen::Request::SharedPtr, turtlesim::srv::SetPen::Response::SharedPtr);
   bool teleportRelativeCallback(const turtlesim::srv::TeleportRelative::Request::SharedPtr, turtlesim::srv::TeleportRelative::Response::SharedPtr);
