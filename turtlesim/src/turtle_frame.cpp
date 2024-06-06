@@ -82,6 +82,7 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
   nh_->declare_parameter("background_b", rclcpp::ParameterValue(DEFAULT_BG_B), background_b_descriptor);
 
   QVector<QString> turtles;
+  turtles.append("dr-drift.png");
   turtles.append("ardent.png");
   turtles.append("bouncy.png");
   turtles.append("crystal.png");
@@ -91,7 +92,8 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
   turtles.append("galactic.png");
   turtles.append("humble.png");
   turtles.append("rolling.png");
-  turtles.append("dr-drift.png");
+  turtles.append("iron.png");
+  turtles.append("jazzy.png");
 
   QString images_path = (ament_index_cpp::get_package_share_directory("turtlesim") + "/images/").c_str();
   for (int i = 0; i < turtles.size(); ++i)
