@@ -330,6 +330,17 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     }
   }
 
+  // start line
+  QPen pen(Qt::white, 6, Qt::DotLine);
+  pen.setDashOffset(.8);
+  painter.setPen(pen);
+  if (lane_boundary_left_.poses.size() > 0 && lane_boundary_right_.poses.size() > 0)
+  {
+    geometry_msgs::msg::Point p1 = lane_boundary_left_.poses[0].pose.position;
+    geometry_msgs::msg::Point p2 = lane_boundary_right_.poses[0].pose.position;
+    painter.drawLine(world_to_pixel_space(p1), world_to_pixel_space(p2));
+  }
+
   painter.drawImage(QPoint(0, 0), path_image_);
 
   M_Turtle::iterator it = turtles_.begin();
@@ -340,9 +351,23 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   }
 
   int lap_count = 0;
+  std::string leader_name = "";
+
+  auto leader_iter = std::max_element(turtles_.begin(), turtles_.end(), [](const M_Turtle::value_type& a, const M_Turtle::value_type& b)
+  {
+    return a.second->laps_completed_ < b.second->laps_completed_;
+  });
+  if (leader_iter != turtles_.end())
+  {
+    M_Turtle::value_type leader = *leader_iter;
+    lap_count = leader.second->laps_completed_;
+    leader_name = leader.first;
+  }
+
   painter.setPen(Qt::white);
   painter.setFont(QFont("Arial", 30));
-  painter.drawText(rect(), Qt::AlignLeft, QString::fromStdString("Lap count: " + std::to_string(lap_count)));
+  painter.drawText(QPointF(10, 40), QString::fromStdString("Lap count: " + std::to_string(lap_count)));
+  painter.drawText(QPointF(10, 90), QString::fromStdString("Leader: " + leader_name));
 }
 
 void TurtleFrame::updateTurtles()

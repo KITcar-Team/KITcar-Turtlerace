@@ -30,6 +30,7 @@
 #include "turtlesim/turtle.h"
 
 #include <math.h>
+#include <algorithm>
 
 #include <QColor>
 #include <QRgb>
@@ -89,8 +90,16 @@ Turtle::Turtle(rclcpp::Node::SharedPtr& nh, const std::string& real_name, const 
 
   meter_ = turtle_image_.height();
 
+  const int n_checkpoints = 4;
+  for (int i = 0; i < n_checkpoints; i++)
+  {
+    checkpoints_.push_back(false);
+  }
+
   lane_boundary_left_ = nav_msgs::msg::Path();
   lane_boundary_right_ = nav_msgs::msg::Path();
+
+  laps_completed_ = 0;
 
   rotateImage();
 }
@@ -328,6 +337,43 @@ bool Turtle::update(double dt, QPainter& path_painter, const QImage& path_image,
         }
       }
     } while (start_over);
+  }
+
+  if (lane_boundary_left_.poses.size() > 1 && lane_boundary_right_.poses.size() > 1)
+  {
+    // update checkpoints
+    const int n_checkpoints = checkpoints_.size();
+    const int n_points = std::min(lane_boundary_left_.poses.size(), lane_boundary_right_.poses.size());
+    for (int i = 0; i < n_checkpoints; i++)
+    {
+      if (checkpoints_[i])
+      {
+        continue;
+      }
+      int checkpoint_idx = n_points / (n_checkpoints+1) * (i+1);
+      QPointF p1 = world_to_pos_space(lane_boundary_left_.poses[checkpoint_idx].pose.position);
+      QPointF p2 = world_to_pos_space(lane_boundary_right_.poses[checkpoint_idx].pose.position);
+      if (intersect(old_pos, pos_, p1, p2))
+      {
+        checkpoints_[i] = true;
+        RCLCPP_DEBUG(nh_->get_logger(), "%s reached checkpoint %d", this->name_.c_str(), i);
+      }
+    }
+
+    // check if we've completed a lap
+    if (std::all_of(checkpoints_.begin(), checkpoints_.end(), [](bool b) { return b; })) {
+      QPointF p1 = world_to_pos_space(lane_boundary_left_.poses[0].pose.position);
+      QPointF p2 = world_to_pos_space(lane_boundary_right_.poses[0].pose.position);
+      if (intersect(old_pos, pos_, p1, p2))
+      {
+        ++laps_completed_;
+        for (int i = 0; i < n_checkpoints; i++)
+        {
+          checkpoints_[i] = false;
+        }
+        RCLCPP_INFO(nh_->get_logger(), "%s completed %d laps", this->name_.c_str(), laps_completed_);
+      }
+    }
   }
 
   // Publish pose of the turtle

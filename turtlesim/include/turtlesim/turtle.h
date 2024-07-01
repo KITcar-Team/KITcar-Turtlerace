@@ -70,6 +70,8 @@ public:
 
   nav_msgs::msg::Path lane_boundary_left_;
   nav_msgs::msg::Path lane_boundary_right_;
+
+  int laps_completed_;
 private:
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
   bool setPenCallback(const turtlesim::srv::SetPen::Request::SharedPtr, turtlesim::srv::SetPen::Response::SharedPtr);
@@ -112,6 +114,8 @@ private:
   std::string name_;
 
   float meter_;
+
+  std::vector<bool> checkpoints_;
 
   struct TeleportRequest
   {
