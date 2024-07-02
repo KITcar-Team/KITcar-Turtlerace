@@ -447,4 +447,22 @@ void Turtle::paint(QPainter& painter)
   painter.drawImage(p, turtle_rotated_image_);
 }
 
+void Turtle::resetLaps()
+{
+  laps_completed_ = 0;
+  for (size_t i = 0; i < checkpoints_.size(); i++)
+  {
+    checkpoints_[i] = false;
+  }
+}
+
+void Turtle::resetPosition(QPointF pos, float orient)
+{
+  pos_ = pos;
+  orient_ = orient;
+  lin_vel_x_ = 0.0;
+  lin_vel_y_ = 0.0;
+  ang_vel_ = 0.0;
+}
+
 }

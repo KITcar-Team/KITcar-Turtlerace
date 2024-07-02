@@ -67,6 +67,8 @@ public:
 
   bool update(double dt, QPainter& path_painter, const QImage& path_image, qreal canvas_width, qreal canvas_height);
   void paint(QPainter &painter);
+  void resetLaps();
+  void resetPosition(QPointF pos, float orient);
 
   nav_msgs::msg::Path lane_boundary_left_;
   nav_msgs::msg::Path lane_boundary_right_;

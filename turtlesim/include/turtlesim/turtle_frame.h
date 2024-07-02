@@ -70,11 +70,13 @@ private slots:
 
 private:
   void updateTurtles();
+  void resetTurtles();
   void clear();
   bool hasTurtle(const std::string& name);
 
   bool clearCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr);
   bool resetCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr);
+  bool resetTurtlesCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr);
   bool spawnCallback(const turtlesim::srv::Spawn::Request::SharedPtr, turtlesim::srv::Spawn::Response::SharedPtr);
   bool killCallback(const turtlesim::srv::Kill::Request::SharedPtr, turtlesim::srv::Kill::Response::SharedPtr);
 
@@ -95,6 +97,7 @@ private:
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr clear_srv_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_turtles_srv_;
   rclcpp::Service<turtlesim::srv::Spawn>::SharedPtr spawn_srv_;
   rclcpp::Service<turtlesim::srv::Kill>::SharedPtr kill_srv_;
   rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_event_sub_;
