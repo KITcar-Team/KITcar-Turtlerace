@@ -109,6 +109,7 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr& node_handle, QWidget* parent, 
 
   clear_srv_ = nh_->create_service<std_srvs::srv::Empty>("clear", std::bind(&TurtleFrame::clearCallback, this, std::placeholders::_1, std::placeholders::_2));
   reset_srv_ = nh_->create_service<std_srvs::srv::Empty>("reset", std::bind(&TurtleFrame::resetCallback, this, std::placeholders::_1, std::placeholders::_2));
+  reset_turtles_srv_ = nh_->create_service<std_srvs::srv::Empty>("reset_turtles", std::bind(&TurtleFrame::resetTurtlesCallback, this, std::placeholders::_1, std::placeholders::_2));
   spawn_srv_ = nh_->create_service<turtlesim::srv::Spawn>("spawn", std::bind(&TurtleFrame::spawnCallback, this, std::placeholders::_1, std::placeholders::_2));
   kill_srv_ = nh_->create_service<turtlesim::srv::Kill>("kill", std::bind(&TurtleFrame::killCallback, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -330,6 +331,17 @@ void TurtleFrame::paintEvent(QPaintEvent*)
     }
   }
 
+  // start line
+  QPen pen(Qt::white, 6, Qt::DotLine);
+  pen.setDashOffset(.8);
+  painter.setPen(pen);
+  if (lane_boundary_left_.poses.size() > 0 && lane_boundary_right_.poses.size() > 0)
+  {
+    geometry_msgs::msg::Point p1 = lane_boundary_left_.poses[0].pose.position;
+    geometry_msgs::msg::Point p2 = lane_boundary_right_.poses[0].pose.position;
+    painter.drawLine(world_to_pixel_space(p1), world_to_pixel_space(p2));
+  }
+
   painter.drawImage(QPoint(0, 0), path_image_);
 
   M_Turtle::iterator it = turtles_.begin();
@@ -340,9 +352,23 @@ void TurtleFrame::paintEvent(QPaintEvent*)
   }
 
   int lap_count = 0;
+  std::string leader_name = "";
+
+  auto leader_iter = std::max_element(turtles_.begin(), turtles_.end(), [](const M_Turtle::value_type& a, const M_Turtle::value_type& b)
+  {
+    return a.second->laps_completed_ < b.second->laps_completed_;
+  });
+  if (leader_iter != turtles_.end())
+  {
+    M_Turtle::value_type leader = *leader_iter;
+    lap_count = leader.second->laps_completed_;
+    leader_name = leader.first;
+  }
+
   painter.setPen(Qt::white);
   painter.setFont(QFont("Arial", 30));
-  painter.drawText(rect(), Qt::AlignLeft, QString::fromStdString("Lap count: " + std::to_string(lap_count)));
+  painter.drawText(QPointF(10, 40), QString::fromStdString("Lap count: " + std::to_string(lap_count)));
+  painter.drawText(QPointF(10, 90), QString::fromStdString("Leader: " + leader_name));
 }
 
 void TurtleFrame::updateTurtles()
@@ -368,6 +394,30 @@ void TurtleFrame::updateTurtles()
   ++frame_count_;
 }
 
+void TurtleFrame::resetTurtles()
+{
+  QPointF loc(width_in_meters_ / 2.0, height_in_meters_ - 2.0); // origin top left like constructor
+  if (lane_boundary_middle_.poses.size() > 1) {
+    // lane boundaries have origin bottom left
+    QPointF first(lane_boundary_middle_.poses[0].pose.position.x, lane_boundary_middle_.poses[0].pose.position.y);
+    QPointF second(lane_boundary_middle_.poses[1].pose.position.x, lane_boundary_middle_.poses[1].pose.position.y);
+    QPointF dir = second - first;
+    dir = dir / sqrt(dir.x() * dir.x() + dir.y() * dir.y()); // normalize
+    loc = QPointF(lane_boundary_middle_.poses[0].pose.position.x, lane_boundary_middle_.poses[0].pose.position.y) - 1.5 * dir;
+
+    // convert to top left origin
+    loc = QPointF(loc.x(), height_in_meters_ - loc.y());
+  }
+
+  M_Turtle::iterator it = turtles_.begin();
+  M_Turtle::iterator end = turtles_.end();
+  for (; it != end; ++it)
+  {
+    it->second->resetLaps();
+    it->second->resetPosition(loc, 0);
+  }
+}
+
 
 bool TurtleFrame::clearCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr)
 {
@@ -383,6 +433,13 @@ bool TurtleFrame::resetCallback(const std_srvs::srv::Empty::Request::SharedPtr, 
   id_counter_ = 0;
   spawnTurtle("", width_in_meters_ / 2.0, height_in_meters_ / 2.0, 0);
   clear();
+  return true;
+}
+
+bool TurtleFrame::resetTurtlesCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr)
+{
+  RCLCPP_INFO(nh_->get_logger(), "Resetting all turtles.");
+  resetTurtles();
   return true;
 }
 
