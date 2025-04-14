@@ -4,6 +4,7 @@
   "remoteUser": "kitcar",
   "image": "osrf/ros:humble-desktop-full",
   "features": {
+    "ghcr.io/devcontainers/features/desktop-lite:1": {},
     "ghcr.io/devcontainers/features/common-utils:1": {
       "version": "latest",
       "username": "kitcar",
@@ -11,6 +12,9 @@
       "userGid": "1000"
     }
   },
+  "appPort": [
+    6080
+  ],
   "workspaceFolder": "/home/ws",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/ws/src,type=bind",
   "customizations": {
@@ -28,23 +32,6 @@
     "ROS_DOMAIN_ID": "42",
     "CAR_NAME": "dr_drift"
   },
-  "runArgs": [
-    "--net=host",
-    "-e",
-    "DISPLAY=${env:DISPLAY}"
-  ],
-  "mounts": [
-    {
-      "source": "/tmp/.X11-unix",
-      "target": "/tmp/.X11-unix",
-      "type": "bind"
-    },
-    {
-      "source": "/dev/dri",
-      "target": "/dev/dri",
-      "type": "bind"
-    }
-  ],
   "postCreateCommand": {
     "chown-ws": "sudo chown -R kitcar /home/ws/",
     "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y",
