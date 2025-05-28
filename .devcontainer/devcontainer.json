@@ -1,12 +1,12 @@
 {
   "name": "ROS 2 Development Container",
   "privileged": true,
-  "remoteUser": "kitcar",
-  "image": "osrf/ros:humble-desktop-full",
+  "remoteUser": "ubuntu",
+  "image": "osrf/ros:rolling-desktop-full",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:1": {
       "version": "latest",
-      "username": "kitcar",
+      "username": "ubuntu",
       "userUid": "1000",
       "userGid": "1000"
     }
@@ -46,8 +46,8 @@
     }
   ],
   "postCreateCommand": {
-    "chown-ws": "sudo chown -R kitcar /home/ws/",
+    "chown-ws": "sudo chown -R ubuntu /home/ws/",
     "rosdep": "sudo apt update && sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y",
-    "source_from_bashrc": "echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc"
+    "source_from_bashrc": "echo 'source /opt/ros/rolling/setup.bash' >> ~/.bashrc"
   }
 }
